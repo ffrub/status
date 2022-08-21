@@ -27,42 +27,44 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
+type Response interface {
+    Print()
+}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "status",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "print the reported status of services",
+    Long: `status lets you print the reported status of:
+    Heroku, GitHub, Targetprocess and Courier`,
+	Run: func(cmd *cobra.Command, args []string) {
+        var herokuRes Response = &HerokuRes{}
+        var githubRes Response = &GithubRes{}
+        var tpRes Response = &TpRes{}
+        var courierRes Response = &CourierRes{}
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+        for err := range Merge(
+            GetStatus("https://status.heroku.com/api/v4/current-status", herokuRes),
+            GetStatus("https://www.githubstatus.com/api/v2/summary.json", githubRes),
+            GetStatus("https://status.targetprocess.com/api/v2/status.json", tpRes),
+            GetStatus("https://status.courier.com/api/v2/status.json", courierRes),
+        ) {
+            if err != nil {
+                cobra.CheckErr(err)
+            }
+        }
+        
+        herokuRes.Print()
+        githubRes.Print()
+        tpRes.Print()
+        courierRes.Print()
+   },
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
 }
-
-func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.status.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
 
