@@ -34,6 +34,7 @@ type Response interface {
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "status",
+    Version: "v0.1.0",
 	Short: "print the reported status of services",
     Long: `status lets you print the reported status of:
     Heroku, GitHub, Targetprocess and Courier`,
